@@ -1,26 +1,46 @@
 import { Injectable } from '@nestjs/common';
 import { CreateGeneroDto } from './dto/create-genero.dto';
 import { UpdateGeneroDto } from './dto/update-genero.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Genero } from './entities/genero.entity';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class GenerosService {
-  create(createGeneroDto: CreateGeneroDto) {
-    return 'This action adds a new genero';
+  constructor(
+    @InjectRepository(Genero)
+    private generoRepository: Repository<Genero>,
+  ) {}
+
+  async create(generoDto: CreateGeneroDto) {
+    const marca = this.generoRepository.create(generoDto);
+    await this.generoRepository.save(marca);
+
+    return marca;
   }
 
   findAll() {
-    return `This action returns all generos`;
+    return this.generoRepository.find();
   }
 
   findOne(id: number) {
-    return `This action returns a #${id} genero`;
+    return this.generoRepository.findOneBy({ id });
   }
 
-  update(id: number, updateGeneroDto: UpdateGeneroDto) {
-    return `This action updates a #${id} genero`;
+  async  update(id: number, updateGeneroDto: UpdateGeneroDto) {
+    const findgenero = await this.findOne(id);
+    const updateProduct = await this.generoRepository.merge(
+      findgenero,
+      updateGeneroDto
+    );
+
+    return this.generoRepository.save(updateProduct);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} genero`;
+  
+  async remove(id: number) {
+    const marca = await this.findOne(id);
+    await this.generoRepository.remove(marca);
+    return `genero eliminada`;
   }
 }
